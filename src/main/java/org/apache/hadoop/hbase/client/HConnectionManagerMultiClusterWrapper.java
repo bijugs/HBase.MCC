@@ -24,6 +24,17 @@ public class HConnectionManagerMultiClusterWrapper {
       LOG.info(" -- Getting a single cluster connection !!");
       if ("kerberos".equalsIgnoreCase(conf.get("hbase.security.authentication"))) {
         conf.set("hadoop.security.authentication", "Kerberos");
+        String krbPrincipal = conf.get("hbase.mcc.kerberos.principal");
+        String krbKeyTab = conf.get("hbase.mcc.kerberos.keytab");
+        if (krbPrincipal != null && krbKeyTab != null) {
+          try {
+            UserGroupInformation ugi = UserGroupInformation.loginUserFromKeytabAndReturnUGI(krbPrincipal,krbKeyTab);
+            UserGroupInformation.setLoginUser(ugi);
+          } catch (IOException e) {
+            LOG.error("Not able to login using the principal and keytab provided.");
+            throw e;
+          }
+        }
         UserGroupInformation.setConfiguration(conf);
       }
       return HConnectionManager.createConnection(conf);
@@ -34,6 +45,17 @@ public class HConnectionManagerMultiClusterWrapper {
       Configuration priConfig = configMap.get(HBaseMultiClusterConfigUtil.PRIMARY_NAME);
       if ("kerberos".equalsIgnoreCase(conf.get("hbase.security.authentication"))) {
         conf.set("hadoop.security.authentication", "Kerberos");
+        String krbPrincipal = priConfig.get("hbase.mcc.kerberos.principal");
+        String krbKeyTab = priConfig.get("hbase.mcc.kerberos.keytab");
+        if (krbPrincipal != null && krbKeyTab != null) {
+          try {
+            UserGroupInformation ugi = UserGroupInformation.loginUserFromKeytabAndReturnUGI(krbPrincipal,krbKeyTab);
+            UserGroupInformation.setLoginUser(ugi);
+          } catch (IOException e) {
+            LOG.error("Not able to login to primary cluster using the principal and keytab provided.");
+            throw e;
+          }
+        }
         UserGroupInformation.setConfiguration(priConfig);
       }
 
@@ -48,6 +70,17 @@ public class HConnectionManagerMultiClusterWrapper {
           Configuration secConfig = entry.getValue();
           if ("kerberos".equalsIgnoreCase(conf.get("hbase.security.authentication"))) {
             conf.set("hadoop.security.authentication", "Kerberos");
+            String krbPrincipal = secConfig.get("hbase.mcc.kerberos.principal");
+            String krbKeyTab = secConfig.get("hbase.mcc.kerberos.keytab");
+            if (krbPrincipal != null && krbKeyTab != null) {
+              try {
+                  UserGroupInformation ugi = UserGroupInformation.loginUserFromKeytabAndReturnUGI(krbPrincipal,krbKeyTab);
+                  UserGroupInformation.setLoginUser(ugi);
+              } catch (IOException e) {
+                  LOG.error("Not able to login to failover cluster using the principal and keytab provided.");
+                  throw e;
+              }
+            }
             UserGroupInformation.setConfiguration(secConfig);
           }
           failoverConnections.add(HConnectionManager.createConnection(secConfig));
