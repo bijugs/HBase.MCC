@@ -21,8 +21,8 @@ public class SpeculativeMutater {
   public Boolean mutate(final long waitToSendFailover, 
       final long waitToSendFailoverWithException, 
       final HBaseTableFunction<Void> function, 
-      final HTableInterface primaryTable,
-      final Collection<HTableInterface> failoverTables,
+      final Table primaryTable,
+      final Collection<Table> failoverTables,
       final AtomicLong lastPrimaryFail,
       final int waitTimeFromLastPrimaryFail) {
     ExecutorCompletionService<Boolean> exeS = new ExecutorCompletionService<Boolean>(exe);
@@ -54,7 +54,7 @@ public class SpeculativeMutater {
     }
     
 
-    for (final HTableInterface failoverTable : failoverTables) {
+    for (final Table failoverTable : failoverTables) {
       callables.add(new Callable<Boolean>() {
 
         public Boolean call() throws Exception {

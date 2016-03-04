@@ -87,7 +87,7 @@ public class MultiThreadedMultiClusterWithCombinedFileTest {
     config.set("hbase.client.retries.number", "1");
     config.set("hbase.client.pause", "1");
 
-    final HConnection connection = HConnectionManagerMultiClusterWrapper.createConnection(config);
+    final Connection connection = HConnectionManagerMultiClusterWrapper.createConnection(config);
 
     System.out.println(" - Got HConnection: " + connection.getClass());
 
@@ -107,14 +107,14 @@ public class MultiThreadedMultiClusterWithCombinedFileTest {
           try {
             Random r = new Random();
             for (int i = 1; i <= numberOfPuts; i++) {
-              HTableInterface table = connection.getTable(tableName);
+              Table table = connection.getTable(TableName.valueOf(tableName));
               HTableStats stats = ((HTableMultiCluster) table).getStats();
               stats.printStats(writer, 5000);
 
               int hash = r.nextInt(10);
 
               Put put = new Put(Bytes.toBytes(hash + ".key." + StringUtils.leftPad(String.valueOf(i * threadFinalNum), 12)));
-              put.add(Bytes.toBytes(familyName), Bytes.toBytes("C"), Bytes.toBytes("Value:" + i * threadFinalNum));
+              put.addColumn(Bytes.toBytes(familyName), Bytes.toBytes("C"), Bytes.toBytes("Value:" + i * threadFinalNum));
               table.put(put);
 
               Thread.sleep(millisecondToWait);

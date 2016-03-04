@@ -36,8 +36,8 @@ public class SpeculativeRequester<T extends Object> {
   }
 
   public ResultWrapper<T> request(final HBaseTableFunction<T> function, 
-      final HTableInterface primaryTable,
-      final Collection<HTableInterface> failoverTables) {
+      final Table primaryTable,
+      final Collection<Table> failoverTables) {
     
     ExecutorCompletionService<ResultWrapper<T>> exeS = new ExecutorCompletionService<ResultWrapper<T>>(exe);
     
@@ -64,7 +64,7 @@ public class SpeculativeRequester<T extends Object> {
       });
     }
 
-    for (final HTableInterface failoverTable : failoverTables) {
+    for (final Table failoverTable : failoverTables) {
       callables.add(new Callable<ResultWrapper<T>>() {
 
         public ResultWrapper<T> call() throws Exception {

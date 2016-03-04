@@ -2,7 +2,7 @@ package org.apache.hadoop.hbase.client;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
+//import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -10,14 +10,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.*;
-import org.apache.hadoop.hbase.client.coprocessor.Batch.Callback;
-import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.MasterService.BlockingInterface;
+//import org.apache.hadoop.hbase.client.coprocessor.Batch.Callback;
+//import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.MasterService.BlockingInterface;
 import org.apache.hadoop.hbase.util.Bytes;
 
-public class HConnectionMultiCluster implements HConnection {
+public class HConnectionMultiCluster implements Connection {
 
-  HConnection primaryConnection;
-  HConnection[] failoverConnections;
+  Connection primaryConnection;
+  Connection[] failoverConnections;
   Configuration originalConfiguration;
   boolean isMasterMaster;
   int waitTimeBeforeAcceptingResults;
@@ -34,7 +34,7 @@ public class HConnectionMultiCluster implements HConnection {
   ExecutorService executor;
 
   public HConnectionMultiCluster(Configuration originalConfiguration,
-      HConnection primaryConnection, HConnection[] failoverConnections) {
+      Connection primaryConnection, Connection[] failoverConnections) {
     this.primaryConnection = primaryConnection;
     this.failoverConnections = failoverConnections;
     this.originalConfiguration = originalConfiguration;
@@ -78,7 +78,7 @@ public class HConnectionMultiCluster implements HConnection {
 
   public void abort(String why, Throwable e) {
     primaryConnection.abort(why, e);
-    for (HConnection failOverConnection : failoverConnections) {
+    for (Connection failOverConnection : failoverConnections) {
       failOverConnection.abort(why, e);
     }
   }
@@ -97,7 +97,7 @@ public class HConnectionMultiCluster implements HConnection {
       LOG.error("Exception while closing primary", e);
       lastException = e;
     }
-    for (HConnection failOverConnection : failoverConnections) {
+    for (Connection failOverConnection : failoverConnections) {
       try {
         failOverConnection.close();
         LOG.info("Closed failover connection");
@@ -124,29 +124,28 @@ public class HConnectionMultiCluster implements HConnection {
     return originalConfiguration;
   }
 
-  @Override
-  public HTableInterface getTable(String tableName) throws IOException {
+  public Table getTable(String tableName) throws IOException {
     return this.getTable(Bytes.toBytes(tableName));
   }
 
-  @Override
-  public HTableInterface getTable(byte[] tableName) throws IOException {
+
+  public Table getTable(byte[] tableName) throws IOException {
     return this.getTable(TableName.valueOf(tableName));
   }
 
   @Override
-  public HTableInterface getTable(TableName tableName) throws IOException {
+  public Table getTable(TableName tableName) throws IOException {
     LOG.info(" -- getting primaryHTable" + primaryConnection.getConfiguration().get("hbase.zookeeper.quorum"));
-    HTableInterface primaryHTable = primaryConnection.getTable(tableName);
-    primaryHTable.setAutoFlush(true, true);
+    Table primaryHTable = primaryConnection.getTable(tableName);
+    // primaryHTable.setAutoFlush(true, true);
 
     LOG.info(" --- got primaryHTable");
-    ArrayList<HTableInterface> failoverHTables = new ArrayList<HTableInterface>();
-    for (HConnection failOverConnection : failoverConnections) {
+    ArrayList<Table> failoverHTables = new ArrayList<Table>();
+    for (Connection failOverConnection : failoverConnections) {
       LOG.info(" -- getting failoverHTable:" + failOverConnection.getConfiguration().get("hbase.zookeeper.quorum"));
 
-      HTableInterface htable = failOverConnection.getTable(tableName);
-      htable.setAutoFlush(true, true);
+      Table htable = failOverConnection.getTable(tableName);
+      //htable.setAutoFlush(true, true);
 
       failoverHTables.add(htable);
       LOG.info(" --- got failoverHTable");
@@ -163,21 +162,21 @@ public class HConnectionMultiCluster implements HConnection {
             waitTimeFromLastPrimaryFail);
   }
 
-  public HTableInterface getTable(String tableName, ExecutorService pool)
+  public Table getTable(String tableName, ExecutorService pool)
       throws IOException {
     return this.getTable(TableName.valueOf(tableName), pool);
   }
 
-  public HTableInterface getTable(byte[] tableName, ExecutorService pool)
+  public Table getTable(byte[] tableName, ExecutorService pool)
       throws IOException {
     return this.getTable(TableName.valueOf(tableName), pool);
   }
 
-  public HTableInterface getTable(TableName tableName, ExecutorService pool)
+  public Table getTable(TableName tableName, ExecutorService pool)
       throws IOException {
-    HTableInterface primaryHTable = primaryConnection.getTable(tableName, pool);
-    ArrayList<HTableInterface> failoverHTables = new ArrayList<HTableInterface>();
-    for (HConnection failOverConnection : failoverConnections) {
+    Table primaryHTable = primaryConnection.getTable(tableName, pool);
+    ArrayList<Table> failoverHTables = new ArrayList<Table>();
+    for (Connection failOverConnection : failoverConnections) {
       failoverHTables.add(failOverConnection.getTable(tableName, pool));
     }
 
@@ -192,7 +191,7 @@ public class HConnectionMultiCluster implements HConnection {
         waitTimeBeforeMutatingBatchFailover,
             waitTimeFromLastPrimaryFail);
   }
-
+  /*
   public boolean isMasterRunning() throws MasterNotRunningException,
           ZooKeeperConnectionException {
     return primaryConnection.isMasterRunning();
@@ -458,11 +457,11 @@ public class HConnectionMultiCluster implements HConnection {
       throws IOException {
     return primaryConnection.getHTableDescriptors(tableNames);
   }
-
+*/
   public boolean isClosed() {
     return primaryConnection.isClosed();
   }
-
+/*
   public void clearCaches(ServerName sn) {
     RuntimeException lastException = null;
     try {
@@ -500,4 +499,28 @@ public class HConnectionMultiCluster implements HConnection {
     // TODO Auto-generated method stub
     return null;
   }
+*/
+@Override
+public Admin getAdmin() throws IOException {
+	// TODO Auto-generated method stub
+	return null;
+}
+
+@Override
+public BufferedMutator getBufferedMutator(TableName arg0) throws IOException {
+	// TODO Auto-generated method stub
+	return null;
+}
+
+@Override
+public BufferedMutator getBufferedMutator(BufferedMutatorParams arg0) throws IOException {
+	// TODO Auto-generated method stub
+	return null;
+}
+
+@Override
+public RegionLocator getRegionLocator(TableName arg0) throws IOException {
+	// TODO Auto-generated method stub
+	return null;
+}
 }

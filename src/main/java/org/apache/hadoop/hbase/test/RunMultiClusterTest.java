@@ -74,13 +74,13 @@ public class RunMultiClusterTest {
     config.set("hbase.client.retries.number", "1");
     config.set("hbase.client.pause", "1");
     
-    HConnection connection = HConnectionManagerMultiClusterWrapper.createConnection(config);
+    Connection connection = HConnectionManagerMultiClusterWrapper.createConnection(config);
     
     System.out.println(" - Got HConnection: " + connection.getClass());
     
     System.out.println("Getting HTable");
     
-    HTableInterface table = connection.getTable(tableName);
+    Table table = connection.getTable(TableName.valueOf(tableName));
     
     System.out.println("Got HTable: " + table.getClass());
     
@@ -91,7 +91,7 @@ public class RunMultiClusterTest {
     for (int i = 1; i <= numberOfPuts; i++) {
       System.out.print("p");
       Put put = new Put(Bytes.toBytes(i%10 + ".key." + StringUtils.leftPad(String.valueOf(i), 12)));
-      put.add(Bytes.toBytes(familyName), Bytes.toBytes("C"), Bytes.toBytes("Value:" + i));
+      put.addColumn(Bytes.toBytes(familyName), Bytes.toBytes("C"), Bytes.toBytes("Value:" + i));
       table.put(put);
       
       System.out.print("g");

@@ -117,7 +117,7 @@ public class MultiThreadedMultiClusterWithCmApiTest {
     config.set("hbase.client.retries.number", "1");
     config.set("hbase.client.pause", "1");
 
-    final HConnection connection = HConnectionManagerMultiClusterWrapper.createConnection(config);
+    final Connection connection = HConnectionManagerMultiClusterWrapper.createConnection(config);
 
     LOG.info(" - Got HConnection: " + connection.getClass());
 
@@ -143,7 +143,7 @@ public class MultiThreadedMultiClusterWithCmApiTest {
         public void run() {
           try {
             Random r = new Random();
-            HTableInterface table = connection.getTable(tableName);
+            Table table = connection.getTable(TableName.valueOf(tableName));
             HTableStats stats = ((HTableMultiCluster) table).getStats();
             stats.printStats(writer, 5000);
 
@@ -152,7 +152,7 @@ public class MultiThreadedMultiClusterWithCmApiTest {
               int hash = r.nextInt(10);
 
               Put put = new Put(Bytes.toBytes(hash + ".key." + i + "." + StringUtils.leftPad(String.valueOf(i * threadFinalNum), 12)));
-              put.add(Bytes.toBytes(familyName), Bytes.toBytes("C"), Bytes.toBytes("Value:" + i * threadFinalNum));
+              put.addColumn(Bytes.toBytes(familyName), Bytes.toBytes("C"), Bytes.toBytes("Value:" + i * threadFinalNum));
               table.put(put);
 
               Thread.sleep(millisecondToWait);

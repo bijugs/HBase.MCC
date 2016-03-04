@@ -12,7 +12,7 @@ import org.apache.log4j.Logger;
 
 public class HConnectionManagerMultiClusterWrapper {
 
-  public static HConnection createConnection(Configuration conf)
+  public static Connection createConnection(Configuration conf)
       throws IOException {
 
     Logger LOG = Logger.getLogger(HConnectionManagerMultiClusterWrapper.class);
@@ -37,7 +37,7 @@ public class HConnectionManagerMultiClusterWrapper {
         }
         UserGroupInformation.setConfiguration(conf);
       }
-      return HConnectionManager.createConnection(conf);
+      return ConnectionManager.createConnection(conf);
     } else { 
       Map<String, Configuration> configMap = HBaseMultiClusterConfigUtil.splitMultiConfigFile(conf);
 
@@ -59,10 +59,10 @@ public class HConnectionManagerMultiClusterWrapper {
         UserGroupInformation.setConfiguration(priConfig);
       }
 
-      HConnection primaryConnection = HConnectionManager.createConnection(priConfig);
+      Connection primaryConnection = ConnectionManager.createConnection(priConfig);
       LOG.info(" --- Got primary Connction");
 
-      ArrayList<HConnection> failoverConnections = new ArrayList<HConnection>();
+      ArrayList<Connection> failoverConnections = new ArrayList<Connection>();
 
       for (Entry<String, Configuration> entry : configMap.entrySet()) {
         if (!entry.getKey().equals(HBaseMultiClusterConfigUtil.PRIMARY_NAME)) {
@@ -83,13 +83,13 @@ public class HConnectionManagerMultiClusterWrapper {
             }
             UserGroupInformation.setConfiguration(secConfig);
           }
-          failoverConnections.add(HConnectionManager.createConnection(secConfig));
+          failoverConnections.add(ConnectionManager.createConnection(secConfig));
           LOG.info(" --- Got failover Connction");
         }
       }
       
       return new HConnectionMultiCluster(conf, primaryConnection,
-          failoverConnections.toArray(new HConnection[0]));
+          failoverConnections.toArray(new Connection[0]));
     }
   }
 }
